@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Sweetneeds Monitor</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍬</text></svg>">
+<style>
+:root{
+  --bg:#f6f7f5;--surface:#fff;--surface-2:#f0f2ee;--text:#1c211d;--muted:#667067;--border:#e1e5df;
+  --accent:#c2185b;--accent-soft:#fbe4ee;--down:#1f7a4d;--down-soft:#e3f2e9;--up:#b4441f;--up-soft:#fbe9e2;
+  --new:#2459c4;--new-soft:#e5ecfb;--warn:#8a6400;--warn-soft:#fbf1d6;--gray-soft:#eceeea;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111412;--surface:#1a1e1b;--surface-2:#222723;--text:#e8ece8;--muted:#9aa49b;--border:#2d332e;
+  --accent:#f06292;--accent-soft:#3a1a28;--down:#5cc58c;--down-soft:#1d3327;--up:#f08a66;--up-soft:#3a2219;
+  --new:#7ea6f5;--new-soft:#1d2840;--warn:#e7c25a;--warn-soft:#3a3118;--gray-soft:#262b27;--shadow:none;
+}}
+:root[data-theme="dark"]{
+  --bg:#111412;--surface:#1a1e1b;--surface-2:#222723;--text:#e8ece8;--muted:#9aa49b;--border:#2d332e;
+  --accent:#f06292;--accent-soft:#3a1a28;--down:#5cc58c;--down-soft:#1d3327;--up:#f08a66;--up-soft:#3a2219;
+  --new:#7ea6f5;--new-soft:#1d2840;--warn:#e7c25a;--warn-soft:#3a3118;--gray-soft:#262b27;--shadow:none;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+h1 small{font-weight:400;color:var(--muted);font-size:14px;margin-left:6px}
+.status{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--down);display:inline-block}
+.dot.stale{background:var(--up)}
+button,.btn{font:inherit;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:hover{background:var(--surface-2)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+.kpi .v{font-size:26px;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto}
+.tab{background:none;border:0;border-bottom:2px solid transparent;border-radius:0;padding:10px 14px;color:var(--muted);white-space:nowrap}
+.tab:hover{background:none;color:var(--text)}
+.tab.on{color:var(--text);border-bottom-color:var(--accent);font-weight:600}
+.tab .n{background:var(--surface-2);border-radius:10px;padding:1px 7px;font-size:12px;margin-left:4px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.chip{border-radius:999px;padding:5px 11px;font-size:13px}
+.chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+input[type=search],select{font:inherit;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px}
+input[type=search]{flex:1;min-width:200px}
+.day{font-size:13px;font-weight:600;color:var(--muted);margin:20px 0 8px;text-transform:uppercase;letter-spacing:.04em}
+.feed{display:flex;flex-direction:column;gap:8px}
+.ev{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);text-decoration:none}
+.ev:hover{border-color:var(--muted)}
+.ev.fresh{border-left:3px solid var(--new)}
+.thumb{width:56px;height:56px;border-radius:8px;background:var(--surface-2) center/contain no-repeat;flex-shrink:0}
+.ev .t{font-weight:550;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ev .m{color:var(--muted);font-size:13px;margin-top:2px}
+.ev .r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.badge{display:inline-block;font-size:12px;font-weight:600;border-radius:6px;padding:2px 7px;margin-right:6px}
+.b-new{background:var(--new-soft);color:var(--new)}
+.b-price_drop,.b-back_in_stock,.b-discount{background:var(--down-soft);color:var(--down)}
+.b-price_up,.b-sold_out{background:var(--up-soft);color:var(--up)}
+.b-removed,.b-baseline{background:var(--gray-soft);color:var(--muted)}
+.b-fresh{background:var(--new);color:#fff}
+.price{font-weight:650}
+.old{color:var(--muted);text-decoration:line-through;font-size:13px;margin-right:6px}
+.pct{font-size:13px;font-weight:600}
+.pct.down{color:var(--down)}.pct.up{color:var(--up)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;cursor:pointer}
+.card:hover{border-color:var(--muted)}
+.card .img{aspect-ratio:1/1;background:#fff center/contain no-repeat;position:relative}
+.card .img .off{position:absolute;top:8px;left:8px;background:var(--accent);color:#fff;font-weight:700;border-radius:6px;padding:3px 8px;font-size:13px}
+.card .img .so{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:6px;padding:3px 8px;font-size:12px}
+.card .body{padding:10px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.card .t{font-size:14px;font-weight:550;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .vendor{color:var(--muted);font-size:12px}
+.card .p{margin-top:auto}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle}
+th{font-size:12px;color:var(--muted);font-weight:600;cursor:pointer;user-select:none;white-space:nowrap;background:var(--surface-2)}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:hover td{background:var(--surface-2)}
+tr{cursor:pointer}
+td .mini{width:36px;height:36px;border-radius:6px;background:#fff center/contain no-repeat;display:block}
+.tablewrap{overflow-x:auto;border-radius:12px}
+.empty{color:var(--muted);padding:40px;text-align:center;background:var(--surface);border:1px dashed var(--border);border-radius:12px}
+.more{display:block;margin:14px auto 0}
+dialog{border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);padding:0;max-width:640px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dlg{padding:18px}
+.dlg-head{display:flex;gap:14px}
+.dlg-head .thumb{width:96px;height:96px;background-color:#fff}
+.dlg h2{font-size:17px;margin:0 0 4px}
+.chart{margin-top:14px;width:100%;height:180px}
+.chart text{fill:var(--muted);font-size:11px}
+.hist{font-size:13px;margin-top:10px;max-height:160px;overflow:auto}
+.hist div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)}
+.dlg-foot{display:flex;justify-content:space-between;margin-top:14px;gap:8px}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);text-decoration:none}
+footer{color:var(--muted);font-size:12px;margin-top:40px;text-align:center}
+@media (max-width:600px){
+  .ev{grid-template-columns:44px 1fr;}
+  .thumb{width:44px;height:44px}
+  .ev .r{grid-column:2;text-align:left}
+  .kpi .v{font-size:22px}
+  .hide-sm{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🍬 Sweetneeds Monitor <small id="shopname"></small></h1>
+    <div class="status">
+      <span class="dot" id="dot"></span><span id="status">Lade …</span>
+      <button id="theme" title="Hell/Dunkel">◐</button>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-tab="feed">Neuigkeiten <span class="n" id="n-feed"></span></button>
+    <button class="tab" data-tab="new">Neu im Shop <span class="n" id="n-new"></span></button>
+    <button class="tab" data-tab="deals">Top-Rabatte <span class="n" id="n-deals"></span></button>
+    <button class="tab" data-tab="cheap">Günstigste <span class="n" id="n-cheap"></span></button>
+    <button class="tab" data-tab="all">Alle Produkte <span class="n" id="n-all"></span></button>
+  </nav>
+
+  <section id="view"></section>
+
+  <footer>Daten aus dem öffentlichen Produktkatalog des Shops · automatisch aktualisiert</footer>
+</div>
+
+<dialog id="dlg"><div class="dlg" id="dlgbody"></div></dialog>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const eur = c => c == null ? "–" : (c/100).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
+const DAY = 864e5;
+const LABEL = {new:"Neu",price_drop:"Preis gesenkt",price_up:"Preis erhöht",discount:"Neuer Rabatt",
+  back_in_stock:"Wieder da",sold_out:"Ausverkauft",removed:"Entfernt",baseline:"Start"};
+const store = {
+  get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch{return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+};
+
+let catalog=[], events=[], meta={}, byId=new Map();
+const lastVisit = store.get("sw_last_visit", null);
+const ui = {tab: store.get("sw_tab","feed"), types: new Set(store.get("sw_types",[])), q:"", sort:store.get("sw_sort",["discount_pct",-1]), cat:"", avail:false, limit:150};
+
+// Theme
+const applyTheme = t => { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; };
+applyTheme(store.get("sw_theme", null));
+$("#theme").onclick = () => {
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+  const next = cur === "dark" ? "light" : "dark"; applyTheme(next); store.set("sw_theme", next);
+};
+
+function rel(ts){
+  const d=(Date.now()-new Date(ts))/1000;
+  if(d<60) return "gerade eben"; if(d<3600) return `vor ${Math.round(d/60)} Min.`;
+  if(d<86400) return `vor ${Math.round(d/3600)} Std.`; return `vor ${Math.round(d/86400)} Tagen`;
+}
+const fmtDay = ts => {
+  const d=new Date(ts), t=new Date(); const y=new Date(Date.now()-DAY);
+  if(d.toDateString()===t.toDateString()) return "Heute";
+  if(d.toDateString()===y.toDateString()) return "Gestern";
+  return d.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
+};
+const fmtTime = ts => new Date(ts).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+const imgSmall = u => u ? u.replace(/(\.(png|jpe?g|webp|gif))(\?|$)/i, "_200x$1$3") : "";
+const imgMed = u => u ? u.replace(/(\.(png|jpe?g|webp|gif))(\?|$)/i, "_400x$1$3") : "";
+
+function priceHtml(price, compare){
+  const off = compare && price && compare>price ? Math.round((1-price/compare)*100) : null;
+  return (off?`<span class="old">${eur(compare)}</span>`:"")+`<span class="price">${eur(price)}</span>`+(off?` <span class="pct down">−${off} %</span>`:"");
+}
+
+async function load(){
+  const bust = "?t="+Date.now();
+  try{
+    [catalog, events, meta] = await Promise.all(["catalog","events","meta"].map(f=>fetch(`data/${f}.json${bust}`).then(r=>r.json())));
+  }catch(e){ $("#status").textContent="Daten konnten nicht geladen werden"; $("#dot").classList.add("stale"); return; }
+  byId = new Map(catalog.map(c=>[c.id,c]));
+  render();
+}
+
+function isNewInShop(c){
+  const started = meta.started ? new Date(meta.started) : 0;
+  const fs = c.first_seen ? new Date(c.first_seen) : 0;
+  const pub = c.published_at ? new Date(c.published_at) : 0;
+  const cutoff = Date.now()-14*DAY;
+  return (fs > started && fs > cutoff) || pub > cutoff;
+}
+
+function render(){
+  // Status
+  const age = (Date.now()-new Date(meta.last_run))/60000;
+  $("#status").textContent = `Zuletzt geprüft ${rel(meta.last_run)}`;
+  $("#dot").classList.toggle("stale", age>90);
+  $("#dot").title = age>90 ? "Letzte Prüfung liegt länger zurück – Workflow prüfen" : "Überwachung läuft";
+  $("#shopname").textContent = (meta.shop||"").replace(/^https?:\/\//,"");
+
+  const week = Date.now()-7*DAY;
+  const real = events.filter(e=>e.type!=="baseline");
+  const ev7 = real.filter(e=>new Date(e.ts)>week);
+  const onSale = catalog.filter(c=>c.discount_pct && c.available);
+  const avgOff = onSale.length ? Math.round(onSale.reduce((a,c)=>a+c.discount_pct,0)/onSale.length) : 0;
+  const sinceVisit = lastVisit ? real.filter(e=>new Date(e.ts)>new Date(lastVisit)).length : 0;
+  const newList = catalog.filter(c=>c.available && isNewInShop(c));
+
+  $("#kpis").innerHTML = [
+    [meta.products ?? "–", "Produkte im Shop"],
+    [sinceVisit, "Änderungen seit letztem Besuch"],
+    [ev7.filter(e=>e.type==="new").length + " / " + newList.length, "Neu: erkannt 7 T. / veröffentl. 14 T."],
+    [ev7.filter(e=>e.type==="price_drop").length + " / " + ev7.filter(e=>e.type==="price_up").length, "Preis ↓ / ↑ (7 Tage)"],
+    [onSale.length, `rabattiert · Ø −${avgOff} %`],
+  ].map(([v,l])=>`<div class="kpi"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
+
+  $("#n-feed").textContent = real.length;
+  $("#n-new").textContent = newList.length;
+  $("#n-deals").textContent = onSale.length;
+  $("#n-all").textContent = catalog.filter(c=>c.available).length;
+  // (keine Ausschlüsse nötig)
+  const NOT_PRODUCTS = new Set([]);
+  const cheap = catalog.filter(c=>c.available && c.price!=null && !NOT_PRODUCTS.has(c.type));
+  $("#n-cheap").textContent = cheap.length;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on", t.dataset.tab===ui.tab));
+  ({feed:renderFeed, new:()=>renderGrid(newList.sort((a,b)=>new Date(b.published_at||b.first_seen)-new Date(a.published_at||a.first_seen)), "Keine neuen Produkte in den letzten 14 Tagen.", true),
+    deals:()=>renderGrid(onSale.sort((a,b)=>b.discount_pct-a.discount_pct), "Aktuell keine rabattierten Produkte."),
+    cheap:()=>renderGrid(cheap.sort((a,b)=>a.price-b.price || (b.discount_pct||0)-(a.discount_pct||0)), "Aktuell keine verfügbaren Produkte."),
+    all:renderTable})[ui.tab]();
+}
+
+function renderFeed(){
+  const types = ["new","price_drop","price_up","discount","back_in_stock","sold_out","removed"];
+  let list = events.slice().reverse();
+  if(ui.types.size) list = list.filter(e=>ui.types.has(e.type) || e.type==="baseline");
+  if(ui.q) list = list.filter(e=>(e.title||"").toLowerCase().includes(ui.q));
+  const total = list.length; list = list.slice(0, ui.limit);
+
+  let html = `<div class="toolbar">${types.map(t=>`<button class="chip ${ui.types.has(t)?"on":""}" data-type="${t}">${LABEL[t]}</button>`).join("")}
+    <input type="search" id="q" placeholder="Suchen …" value="${esc(ui.q)}"></div>`;
+  if(!list.length) html += `<div class="empty">Noch keine Änderungen erkannt. Neue Produkte und Preisänderungen erscheinen hier, sobald sie auftreten.</div>`;
+  let day = null;
+  html += `<div class="feed">`;
+  for(const e of list){
+    const d = fmtDay(e.ts);
+    if(d!==day){ html += `</div><div class="day">${esc(d)}</div><div class="feed">`; day=d; }
+    if(e.type==="baseline"){ html += `<div class="ev"><div class="thumb" style="display:grid;place-items:center;font-size:24px">📡</div><div><div class="t">${esc(e.title)}</div><div class="m">${fmtTime(e.ts)}</div></div><div></div></div>`; continue; }
+    const fresh = lastVisit && new Date(e.ts)>new Date(lastVisit);
+    let right;
+    if(e.type==="price_drop"||e.type==="price_up"){
+      right = `<span class="old">${eur(e.old_price)}</span><span class="price">${eur(e.price)}</span><br><span class="pct ${e.change_pct<0?"down":"up"}">${e.change_pct>0?"+":""}${e.change_pct.toLocaleString("de-DE")} %</span>`;
+    } else right = priceHtml(e.price, e.compare_at);
+    html += `<a class="ev ${fresh?"fresh":""}" href="${esc(e.url)}" target="_blank" rel="noopener" title="Im Shop öffnen" data-id="${esc(e.id)}">
+      <div class="thumb" style="background-image:url('${esc(imgSmall(e.image))}')"></div>
+      <div><div class="t">${esc(e.title)}</div>
+      <div class="m">${fresh?'<span class="badge b-fresh">NEU</span>':""}<span class="badge b-${e.type}">${LABEL[e.type]}</span>${fmtTime(e.ts)}</div></div>
+      <div class="r">${right}</div></a>`;
+  }
+  html += `</div>`;
+  if(total>ui.limit) html += `<button class="more" id="more">Weitere ${Math.min(150,total-ui.limit)} anzeigen (${total-ui.limit} übrig)</button>`;
+  $("#view").innerHTML = html;
+  document.querySelectorAll("[data-type]").forEach(b=>b.onclick=()=>{const t=b.dataset.type; ui.types.has(t)?ui.types.delete(t):ui.types.add(t); store.set("sw_types",[...ui.types]); render();});
+  bindSearch(); bindOpen();
+  const m=$("#more"); if(m) m.onclick=()=>{ui.limit+=150; render();};
+}
+
+function renderGrid(list, emptyMsg, showDate){
+  if(ui.q) list = list.filter(c=>(c.title+" "+c.vendor).toLowerCase().includes(ui.q));
+  let html = `<div class="toolbar"><input type="search" id="q" placeholder="Suchen …" value="${esc(ui.q)}"></div>`;
+  if(!list.length) html += `<div class="empty">${emptyMsg}</div>`;
+  html += `<div class="grid">` + list.map(c=>`
+    <div class="card" data-id="${esc(c.id)}">
+      <div class="img" style="background-image:url('${esc(imgMed(c.image))}')">${c.discount_pct?`<span class="off">−${c.discount_pct} %</span>`:""}${!c.available?'<span class="so">ausverkauft</span>':""}</div>
+      <div class="body"><div class="vendor">${esc(c.vendor)}${showDate&&c.published_at?" · "+new Date(c.published_at).toLocaleDateString("de-DE"):""}</div>
+      <div class="t">${esc(c.title)}</div><div class="p">${priceHtml(c.price,c.compare_at)}</div></div>
+    </div>`).join("") + `</div>`;
+  $("#view").innerHTML = html; bindSearch(); bindOpen();
+}
+
+function renderTable(){
+  const cats = [...new Set(catalog.map(c=>c.type).filter(Boolean))].sort();
+  let list = catalog.filter(c=>c.available);
+  if(ui.q) list = list.filter(c=>(c.title+" "+c.vendor+" "+c.sku).toLowerCase().includes(ui.q));
+  if(ui.cat) list = list.filter(c=>c.type===ui.cat);
+  const [k,dir] = ui.sort;
+  list.sort((a,b)=>{const x=a[k]??-1e12, y=b[k]??-1e12; return (typeof x==="string"? x.localeCompare(y,"de") : x-y)*dir;});
+  const cols = [["","",""],["title","Produkt",""],["vendor","Marke","hide-sm"],["type","Kategorie","hide-sm"],["compare_at","Streichpreis","num hide-sm"],["price","Preis","num"],["discount_pct","Rabatt","num"],["first_seen","Erfasst","num hide-sm"]];
+  const arrow = c => c===k ? (dir>0?" ▲":" ▼") : "";
+  $("#view").innerHTML = `<div class="toolbar"><input type="search" id="q" placeholder="Produkt, Marke, SKU …" value="${esc(ui.q)}">
+    <select id="cat"><option value="">Alle Kategorien</option>${cats.map(c=>`<option ${c===ui.cat?"selected":""}>${esc(c)}</option>`).join("")}</select>
+    
+    <span style="color:var(--muted);font-size:13px">${list.length} Einträge</span></div>
+    <div class="tablewrap"><table><thead><tr>${cols.map(([c,l,cl])=>`<th class="${cl}" data-sort="${c}">${l}${arrow(c)}</th>`).join("")}</tr></thead><tbody>
+    ${list.map(c=>`<tr data-id="${esc(c.id)}"><td><span class="mini" style="background-image:url('${esc(imgSmall(c.image))}')"></span></td>
+      <td>${esc(c.title)}${!c.available?' <span class="badge b-sold_out">ausverkauft</span>':""}</td>
+      <td class="hide-sm">${esc(c.vendor)}</td><td class="hide-sm">${esc(c.type)}</td>
+      <td class="num hide-sm">${c.compare_at?eur(c.compare_at):""}</td><td class="num"><b>${eur(c.price)}</b></td>
+      <td class="num">${c.discount_pct?`<span class="pct down">−${c.discount_pct} %</span>`:""}</td>
+      <td class="num hide-sm">${c.first_seen?new Date(c.first_seen).toLocaleDateString("de-DE"):""}</td></tr>`).join("")}
+    </tbody></table></div>`;
+  bindSearch(); bindOpen();
+  $("#cat").onchange = e=>{ui.cat=e.target.value; render();};
+  document.querySelectorAll("th[data-sort]").forEach(th=>th.onclick=()=>{const c=th.dataset.sort; if(!c) return;
+    ui.sort = ui.sort[0]===c ? [c,-ui.sort[1]] : [c, ["title","vendor","type"].includes(c)?1:-1]; store.set("sw_sort",ui.sort); render();});
+}
+
+function bindSearch(){
+  const q=$("#q"); if(!q) return;
+  q.oninput = () => { ui.q=q.value.trim().toLowerCase(); const pos=q.selectionStart; render(); const n=$("#q"); n.focus(); n.setSelectionRange(pos,pos); };
+}
+function bindOpen(){
+  // Direkt zur Produktseite im Shop (neuer Tab) – ohne Zwischen-Pop-up
+  document.querySelectorAll("[data-id]").forEach(el=>{
+    if(el.tagName==="A") return;            // Feed-Einträge sind echte Links
+    const c=byId.get(el.dataset.id), url=(c&&c.url)||el.dataset.url;
+    el.title="Im Shop öffnen";
+    el.onclick=()=>{ if(url) window.open(url,"_blank","noopener"); };
+  });
+}
+
+function chartSvg(h){
+  if(h.length<1) return "";
+  const pts = h.map(([t,p])=>[new Date(t).getTime(),p]).filter(x=>x[1]!=null);
+  pts.push([Date.now(), pts[pts.length-1][1]]);
+  const W=600,H=180,L=56,R=10,T=12,B=24;
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  let x0=Math.min(...xs), x1=Math.max(...xs); if(x1===x0) x0-=DAY;
+  let y0=Math.min(...ys), y1=Math.max(...ys); const pad=Math.max((y1-y0)*.15, y1*.05, 10); y0-=pad; y1+=pad;
+  const X=x=>L+(x-x0)/(x1-x0)*(W-L-R), Y=y=>T+(1-(y-y0)/(y1-y0))*(H-T-B);
+  let d=""; pts.forEach(([x,y],i)=>{ d += i? `H${X(x).toFixed(1)}V${Y(y).toFixed(1)}` : `M${X(x).toFixed(1)},${Y(y).toFixed(1)}`; });
+  d += `H${X(x1).toFixed(1)}`;
+  const ticks=[y0+pad, (y0+y1)/2, y1-pad];
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Preisverlauf">
+    ${ticks.map(t=>`<line x1="${L}" x2="${W-R}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--border)"/><text x="${L-6}" y="${Y(t)+4}" text-anchor="end">${eur(Math.round(t))}</text>`).join("")}
+    <text x="${L}" y="${H-6}">${new Date(x0).toLocaleDateString("de-DE")}</text><text x="${W-R}" y="${H-6}" text-anchor="end">heute</text>
+    <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
+    ${pts.slice(0,-1).map(([x,y])=>`<circle cx="${X(x)}" cy="${Y(y)}" r="3.5" fill="var(--accent)"/>`).join("")}</svg>`;
+}
+
+function openItem(id, fallbackUrl){
+  const c = byId.get(id);
+  const evs = events.filter(e=>e.id===id).reverse();
+  if(!c){ // z. B. entferntes Produkt
+    const e = evs[0];
+    $("#dlgbody").innerHTML = `<h2>${esc(e?.title||"Produkt")}</h2><p style="color:var(--muted)">Dieses Produkt ist nicht mehr im Shop gelistet.</p>
+      <div class="dlg-foot"><span></span><button id="close">Schließen</button></div>`;
+  } else {
+    $("#dlgbody").innerHTML = `<div class="dlg-head"><div class="thumb" style="background-image:url('${esc(imgMed(c.image))}')"></div>
+      <div><div style="color:var(--muted);font-size:13px">${esc(c.vendor)} · ${esc(c.type)}</div><h2>${esc(c.title)}</h2>
+      <div>${priceHtml(c.price,c.compare_at)} ${!c.available?'<span class="badge b-sold_out">ausverkauft</span>':""}</div>
+      <div style="color:var(--muted);font-size:12px;margin-top:4px">Erfasst seit ${c.first_seen?new Date(c.first_seen).toLocaleDateString("de-DE"):"–"}${c.published_at?" · im Shop seit "+new Date(c.published_at).toLocaleDateString("de-DE"):""}${c.sku?" · SKU "+esc(c.sku):""}</div></div></div>
+      ${c.history.length>1 ? chartSvg(c.history) : '<p style="color:var(--muted);font-size:13px;margin-top:14px">Noch keine Preisänderung seit Beginn der Überwachung.</p>'}
+      ${evs.length?`<div class="hist">${evs.map(e=>`<div><span><span class="badge b-${e.type}">${LABEL[e.type]}</span>${new Date(e.ts).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"})}</span><span>${e.old_price!=null?eur(e.old_price)+" → ":""}${eur(e.price)}</span></div>`).join("")}</div>`:""}
+      <div class="dlg-foot"><a class="btn btn-primary" href="${esc(c.url)}" target="_blank" rel="noopener">Im Shop öffnen ↗</a><button id="close">Schließen</button></div>`;
+  }
+  $("#dlg").showModal(); $("#close").onclick=()=>$("#dlg").close();
+}
+$("#dlg").addEventListener("click", e=>{ if(e.target.id==="dlg") $("#dlg").close(); });
+
+$("#tabs").onclick = e => { const t=e.target.closest(".tab"); if(!t) return; ui.tab=t.dataset.tab; ui.limit=150; store.set("sw_tab",ui.tab); render(); };
+
+// "Seit letztem Besuch": Zeitstempel erst beim Verlassen setzen, damit Markierungen während des Besuchs bleiben.
+addEventListener("pagehide", ()=> { if(meta.last_run) store.set("sw_last_visit", meta.last_run); });
+setInterval(load, 5*60*1000);
+load();
+})();
+</script>
+</body>
+</html>
